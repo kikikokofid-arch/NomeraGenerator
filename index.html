@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>нАмерок</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--tg-theme-bg-color, #05070d);
+      color: var(--tg-theme-text-color, #ffffff);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 30px;
+    }
+    .app {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 12px 16px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 15px;
+    }
+    .close-btn {
+      color: var(--tg-theme-link-color, #8b9bb4);
+      background: none;
+      border: none;
+      font-size: 15px;
+    }
+    .balance {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .luck {
+      background: #1a7a3a;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 10px 0 16px;
+      width: 100%;
+      justify-content: center;
+    }
+    .country-btn {
+      width: 100%;
+      background: var(--tg-theme-secondary-bg-color, #1a1f2e);
+      border: 1px solid #2a3142;
+      color: inherit;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .plate-box {
+      background: var(--tg-theme-secondary-bg-color, #0f131c);
+      border-radius: 18px;
+      padding: 22px 14px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .plate {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f1f1;
+      color: #111;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-weight: 800;
+      font-size: 23px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+      border: 3px solid #ccc;
+      transition: 0.12s;
+    }
+    .plate.spinning { transform: scale(1.04); }
+    .flag {
+      background: #0096d6;
+      color: white;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-right: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.05;
+    }
+    .flag small { font-size: 11px; }
+    .divider {
+      width: 2px;
+      height: 30px;
+      background: #444;
+      margin: 0 7px;
+    }
+    .info {
+      margin-top: 11px;
+      font-size: 13px;
+      color: #888;
+    }
+    .region-box {
+      background: var(--tg-theme-secondary-bg-color, #1a1f2e);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    select {
+      width: 100%;
+      background: #252b3b;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 11px;
+      font-size: 15px;
+      margin-top: 6px;
+    }
+    .stats {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      flex: 1;
+      background: var(--tg-theme-secondary-bg-color, #1a1f2e);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat span { display: block; font-size: 12px; color: #888; }
+    .stat b { font-size: 19px; }
+    .btn-spin {
+      width: 100%;
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .btn-spin:disabled { opacity: 0.55; }
+    .history {
+      margin-top: 22px;
+    }
+    .history h3 {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .history-item {
+      background: var(--tg-theme-secondary-bg-color, #1a1f2e);
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    /* Модалка */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: var(--tg-theme-bg-color, #12161f);
+      width: 100%;
+      max-width: 420px;
+      border-radius: 22px 22px 0 0;
+      padding: 22px 16px 40px;
+    }
+    .modal-title {
+      text-align: center;
+      font-size: 17px;
+      margin-bottom: 18px;
+    }
+    .country-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .country-item {
+      background: var(--tg-theme-secondary-bg-color, #1e2433);
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 15px 8px;
+      text-align: center;
+      font-size: 15px;
+    }
+    .country-item.active {
+      border-color: #3b82f6;
+    }
+    .close-modal {
+      width: 100%;
+      margin-top: 18px;
+      background: var(--tg-theme-secondary-bg-color, #252b3b);
+      color: inherit;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top-bar">
+      <button class="close-btn" onclick="Telegram.WebApp.close()">Закрыть</button>
+      <div style="font-weight:600">нАмерок</div>
+      <div style="width:50px"></div>
+    </div>
+
+    <div class="balance">💰 <span id="balance">2 782 413</span> ₽</div>
+    <div class="luck">🍀 Удача ×2 • осталось <span id="timer">05:21</span></div>
+
+    <button class="country-btn" onclick="openCountryModal()">
+      <span id="currentCountry">🇰🇿 Казахстан</span>
+      <span>▼</span>
+    </button>
+
+    <div class="plate-box">
+      <div class="plate" id="plate">
+        <div class="flag" id="flag">KZ<br><small>🟡</small></div>
+        <span id="mainPart">000 AAA</span>
+        <div class="divider" id="divider"></div>
+        <span id="regionPart">01</span>
+      </div>
+      <div class="info" id="plateInfo">Номера Казахстана: 3 цифры, 3 буквы, регион</div>
+    </div>
+
+    <div class="region-box" id="regionBox">
+      <div style="font-size:13px;color:#888;margin-bottom:4px">📍 Регион</div>
+      <select id="regionSelect" onchange="updateRegion()"></select>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Круток</span><b id="spins">0</b></div>
+      <div class="stat"><span>Редких</span><b id="rare">0</b></div>
+    </div>
+
+    <button class="btn-spin" id="spinBtn" onclick="spin()">🎯 Крутить номер</button>
+
+    <div class="history">
+      <h3>🏆 Последние номера</h3>
+      <div id="history"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="countryModal">
+    <div class="modal-content">
+      <div class="modal-title">Страна номеров</div>
+      <div class="country-grid">
+        <div class="country-item active" data-code="kz" onclick="selectCountry('kz')">🇰🇿 Казахстан</div>
+        <div class="country-item" data-code="ru" onclick="selectCountry('ru')">🇷🇺 Россия</div>
+        <div class="country-item" data-code="by" onclick="selectCountry('by')">🇧🇾 Беларусь</div>
+        <div class="country-item" data-code="ua" onclick="selectCountry('ua')">🇺🇦 Украина</div>
+        <div class="country-item" data-code="ae" onclick="selectCountry('ae')">🇦🇪 Дубай</div>
+      </div>
+      <button class="close-modal" onclick="closeCountryModal()">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#05070d');
+    tg.setBackgroundColor('#05070d');
+
+    let balance = 2782413;
+    let spins = 0;
+    let rare = 0;
+    let current = 'kz';
+    let isSpinning = false;
+
+    const countries = {
+      kz: {
+        name: '🇰🇿 Казахстан',
+        flag: 'KZ<br><small>🟡</small>',
+        info: 'Номера Казахстана: 3 цифры, 3 буквы, регион',
+        regions: ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'],
+        generate: () => {
+          const nums = String(Math.floor(Math.random()*1000)).padStart(3,'0');
+          const lets = 'ABEKMHOPCTYX';
+          let l = '';
+          for(let i=0;i<3;i++) l += lets[Math.floor(Math.random()*lets.length)];
+          return { main: nums + ' ' + l, hasRegion: true };
+        }
+      },
+      ru: {
+        name: '🇷🇺 Россия',
+        flag: 'RUS',
+        info: 'Номера России: буква + 3 цифры + 2 буквы + регион',
+        regions: ['01','02','77','78','99','199','777','799','97','197','50','150'],
+        generate: () => {
+          const lets = 'ABEKMHOPCTYX';
+          const l1 = lets[Math.floor(Math.random()*lets.length)];
+          const nums = String(Math.floor(Math.random()*1000)).padStart(3,'0');
+          const l2 = lets[Math.floor(Math.random()*lets.length)] + lets[Math.floor(Math.random()*lets.length)];
+          return { main: l1 + ' ' + nums + ' ' + l2, hasRegion: true };
+        }
+      },
+      by: {
+        name: '🇧🇾 Беларусь',
+        flag: 'BY',
+        info: 'Номера Беларуси',
+        regions: ['1','2','3','4','5','6','7'],
+        generate: () => {
+          const nums = String(Math.floor(Math.random()*9999)).padStart(4,'0');
+          const lets = 'ABEKMHOPCTYX';
+          const l = lets[Math.floor(Math.random()*lets.length)] + lets[Math.floor(Math.random()*lets.length)];
+          return { main: nums + ' ' + l, hasRegion: true };
+        }
+      },
+      ua: {
+        name: '🇺🇦 Украина',
+        flag: 'UA',
+        info: 'Номера Украины',
+        regions: [],
+        generate: () => {
+          const lets = 'ABCEHIKMOPTX';
+          const l1 = lets[Math.floor(Math.random()*lets.length)] + lets[Math.floor(Math.random()*lets.length)];
+          const nums = String(Math.floor(Math.random()*10000)).padStart(4,'0');
+          const l2 = lets[Math.floor(Math.random()*lets.length)] + lets[Math.floor(Math.random()*lets.length)];
+          return { main: l1 + ' ' + nums + ' ' + l2, hasRegion: false };
+        }
+      },
+      ae: {
+        name: '🇦🇪 Дубай',
+        flag: 'UAE',
+        info: 'Номера Дубая',
+        regions: [],
+        generate: () => {
+          const cats = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+          const cat = cats[Math.floor(Math.random()*cats.length)];
+          const nums = String(Math.floor(Math.random()*99999)).padStart(5,'0');
+          return { main: cat + ' ' + nums, hasRegion: false };
+        }
+      }
+    };
+
+    function openCountryModal() {
+      document.getElementById('countryModal').classList.add('active');
+    }
+    function closeCountryModal() {
+      document.getElementById('countryModal').classList.remove('active');
+    }
+
+    function selectCountry(code) {
+      current = code;
+      document.querySelectorAll('.country-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.code === code);
+      });
+
+      const c = countries[code];
+      document.getElementById('currentCountry').textContent = c.name;
+      document.getElementById('flag').innerHTML = c.flag;
+      document.getElementById('plateInfo').textContent = c.info;
+
+      const box = document.getElementById('regionBox');
+      const select = document.getElementById('regionSelect');
+      const divider = document.getElementById('divider');
+      const regionPart = document.getElementById('regionPart');
+
+      if (c.regions.length > 0) {
+        box.style.display = 'block';
+        select.innerHTML = c.regions.map(r => `<option value="${r}">${r}</option>`).join('');
+        divider.style.display = 'block';
+        regionPart.style.display = 'inline';
+        regionPart.textContent = c.regions[0];
+      } else {
+        box.style.display = 'none';
+        divider.style.display = 'none';
+        regionPart.style.display = 'none';
+      }
+
+      const gen = c.generate();
+      document.getElementById('mainPart').textContent = gen.main;
+      closeCountryModal();
+    }
+
+    function updateRegion() {
+      document.getElementById('regionPart').textContent = document.getElementById('regionSelect').value;
+    }
+
+    function spin() {
+      if (isSpinning) return;
+      isSpinning = true;
+      document.getElementById('spinBtn').disabled = true;
+      document.getElementById('plate').classList.add('spinning');
+
+      // Лёгкая вибрация в Telegram
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+      let count = 0;
+      const anim = setInterval(() => {
+        const gen = countries[current].generate();
+        document.getElementById('mainPart').textContent = gen.main;
+        count++;
+        if (count > 22) {
+          clearInterval(anim);
+          document.getElementById('plate').classList.remove('spinning');
+
+          const final = countries[current].generate();
+          document.getElementById('mainPart').textContent = final.main;
+
+          if (countries[current].regions.length) {
+            document.getElementById('regionPart').textContent = document.getElementById('regionSelect').value;
+          }
+
+          spins++;
+          document.getElementById('spins').textContent = spins;
+
+          if (Math.random() < 0.09) {
+            rare++;
+            document.getElementById('rare').textContent = rare;
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          const item = document.createElement('div');
+          item.className = 'history-item';
+          const text = final.main + (final.hasRegion ? ' | ' + document.getElementById('regionPart').textContent : '');
+          item.innerHTML = `<span>${text}</span><span>${countries[current].name.split(' ')[0]}</span>`;
+          document.getElementById('history').prepend(item);
+
+          isSpinning = false;
+          document.getElementById('spinBtn').disabled = false;
+        }
+      }, 45);
+    }
+
+    // Таймер
+    let sec = 5 * 60 + 21;
+    setInterval(() => {
+      if (sec > 0) {
+        sec--;
+        const m = Math.floor(sec / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = m + ':' + s;
+      }
+    }, 1000);
+
+    // Старт
+    selectCountry('kz');
+  </script>
+</body>
+</html>
