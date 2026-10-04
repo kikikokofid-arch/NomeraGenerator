@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Генератор номеров</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ background:#05070d;
+ color:#fff;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+.app{
+ max-width:520px;
+ margin:auto;
+ min-height:100vh;
+ padding:18px;
+ background:
+ radial-gradient(circle at 50% 20%,#17213b 0,#090c16 35%,#05070d 70%);
+}
+
+.header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin-bottom:20px;
+}
+
+.logo{
+ font-size:24px;
+ font-weight:800;
+}
+
+.balance{
+ background:#121827;
+ border:1px solid #29334b;
+ padding:10px 15px;
+ border-radius:16px;
+ font-weight:800;
+}
+
+.label{
+ color:#8e99b2;
+ font-size:14px;
+}
+
+.luck{
+ background:linear-gradient(135deg,#18a95b,#35c56d);
+ border-radius:20px;
+ padding:17px;
+ text-align:center;
+ font-weight:800;
+ margin-bottom:18px;
+ box-shadow:0 0 30px rgba(35,190,100,.18);
+}
+
+.card{
+ background:linear-gradient(145deg,#111622,#080b12);
+ border:1px solid #252d40;
+ border-radius:25px;
+ padding:18px;
+ margin-bottom:16px;
+}
+
+.card-title{
+ color:#9aa5bc;
+ font-size:18px;
+ font-weight:700;
+ margin-bottom:15px;
+}
+
+.plate{
+ background:linear-gradient(#f8f8f8,#cfcfcf);
+ border:5px solid #161616;
+ outline:3px solid #eee;
+ border-radius:17px;
+ color:#111;
+ min-height:125px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:12px;
+ padding:10px;
+ box-shadow:0 7px 20px #000;
+ transition:.15s;
+}
+
+.flag{
+ background:#16a4c4;
+ color:white;
+ border-radius:9px;
+ padding:12px 9px;
+ text-align:center;
+ font-size:18px;
+ font-weight:900;
+ line-height:1.2;
+}
+
+.number{
+ font-size:clamp(38px,10vw,58px);
+ font-weight:900;
+ letter-spacing:2px;
+}
+
+.region{
+ border-left:3px solid #222;
+ padding-left:12px;
+ font-size:clamp(32px,8vw,48px);
+ font-weight:900;
+}
+
+.info{
+ text-align:center;
+ color:#8f9ab0;
+ margin-top:14px;
+ font-size:14px;
+}
+
+.stats{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+ margin-bottom:16px;
+}
+
+.stat{
+ background:#101522;
+ border:1px solid #252e43;
+ border-radius:18px;
+ padding:14px;
+}
+
+.stat b{
+ display:block;
+ font-size:20px;
+ margin-top:4px;
+}
+
+button{
+ width:100%;
+ border:0;
+ border-radius:18px;
+ padding:17px;
+ color:white;
+ font-size:17px;
+ font-weight:800;
+ cursor:pointer;
+ margin-top:10px;
+}
+
+.spin{
+ background:linear-gradient(135deg,#3d8bf5,#2864d7);
+ box-shadow:0 8px 25px rgba(40,100,215,.25);
+}
+
+.region-btn{
+ background:#111827;
+ border:1px solid #315da7;
+}
+
+.collection{
+ display:flex;
+ flex-direction:column;
+ gap:8px;
+ max-height:230px;
+ overflow:auto;
+}
+
+.item{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ background:#0e131e;
+ border:1px solid #242d40;
+ border-radius:14px;
+ padding:11px 13px;
+}
+
+.rare{
+ color:#ffd15c;
+}
+
+.result{
+ min-height:25px;
+ text-align:center;
+ color:#aeb9cf;
+ margin:12px 0;
+ font-weight:700;
+}
+
+.spinning{
+ animation:shake .08s infinite alternate;
+}
+
+@keyframes shake{
+ from{transform:translateX(-2px)}
+ to{transform:translateX(2px)}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">
+ <div>
+  <div class="label">Генератор номеров</div>
+  <div class="logo">🇰🇿 KZ NUMBERS</div>
+ </div>
+
+ <div class="balance">
+  💰 <span id="balance">2782</span>
+ </div>
+</div>
+
+<div class="luck">
+ 🍀 Удача ×2
+ <div style="font-size:13px;margin-top:4px;opacity:.85">
+  Бонус активен
+ </div>
+</div>
+
+<div class="card">
+
+ <div class="card-title">
+  🎰 Текущий номер
+ </div>
+
+ <div class="plate" id="plate">
+
+  <div class="flag">
+   KZ<br>🟡
+  </div>
+
+  <div class="number" id="numbers">
+   000
+  </div>
+
+  <div class="number" id="letters">
+   AAA
+  </div>
+
+  <div class="region" id="region">
+   01
+  </div>
+
+ </div>
+
+ <div class="info">
+  Казахстан • 3 цифры • 3 буквы • регион
+ </div>
+
+</div>
+
+<div class="stats">
+
+ <div class="stat">
+  <div class="label">Круток</div>
+  <b id="spins">0</b>
+ </div>
+
+ <div class="stat">
+  <div class="label">Редких</div>
+  <b id="rare">0</b>
+ </div>
+
+</div>
+
+<div class="card">
+
+ <div class="card-title">
+  📍 Регион
+ </div>
+
+ <button class="region-btn" id="regionBtn">
+  🇰🇿 Регион <span id="selectedRegion">01</span>
+ </button>
+
+ <button class="spin" id="spin">
+  🎯 КРУТИТЬ НОМЕР
+ </button>
+
+ <div class="result" id="result">
+  Стоимость крутки: 100 виртуальных очков
+ </div>
+
+</div>
+
+<div class="card">
+
+ <div class="card-title">
+  🏆 Последние номера
+ </div>
+
+ <div class="collection" id="collection">
+  <div class="item">
+   <span>Пока пусто</span>
+   <span>—</span>
+  </div>
+ </div>
+
+</div>
+
+</div>
+
+<script>
+
+const letters="АВЕКМНОРСТУХ";
+
+let balance=2782;
+let spins=0;
+let rare=0;
+let selectedRegion=1;
+let busy=false;
+
+const balanceEl=document.getElementById("balance");
+const numbersEl=document.getElementById("numbers");
+const lettersEl=document.getElementById("letters");
+const regionEl=document.getElementById("region");
+const selectedRegionEl=document.getElementById("selectedRegion");
+const spinsEl=document.getElementById("spins");
+const rareEl=document.getElementById("rare");
+const resultEl=document.getElementById("result");
+const collectionEl=document.getElementById("collection");
+const plate=document.getElementById("plate");
+const spinBtn=document.getElementById("spin");
+
+function randomNumber(){
+ return String(Math.floor(Math.random()*1000)).padStart(3,"0");
+}
+
+function randomLetters(){
+ let result="";
+ for(let i=0;i<3;i++){
+  result+=letters[Math.floor(Math.random()*letters.length)];
+ }
+ return result;
+}
+
+function randomRegion(){
+ return String(selectedRegion).padStart(2,"0");
+}
+
+function generate(){
+ numbersEl.textContent=randomNumber();
+ lettersEl.textContent=randomLetters();
+ regionEl.textContent=randomRegion();
+}
+
+document.getElementById("regionBtn").onclick=()=>{
+
+ if(busy)return;
+
+ selectedRegion++;
+
+ if(selectedRegion>20){
+  selectedRegion=1;
+ }
+
+ const region=String(selectedRegion).padStart(2,"0");
+
+ selectedRegionEl.textContent=region;
+ regionEl.textContent=region;
+};
+
+spinBtn.onclick=()=>{
+
+ if(busy)return;
+
+ if(balance<100){
+
+  resultEl.textContent="❌ Недостаточно виртуальных очков";
+  return;
+
+ }
+
+ busy=true;
+ spinBtn.disabled=true;
+
+ balance-=100;
+ spins++;
+
+ balanceEl.textContent=balance.toLocaleString("ru-RU");
+ spinsEl.textContent=spins;
+
+ plate.classList.add("spinning");
+
+ resultEl.textContent="🎰 Генерация номера...";
+
+ let counter=0;
+
+ const animation=setInterval(()=>{
+
+  generate();
+  counter++;
+
+  if(counter>=25){
+
+   clearInterval(animation);
+
+   plate.classList.remove("spinning");
+
+   const isRare=Math.random()<0.08;
+
+   if(isRare){
+
+    rare++;
+
+    rareEl.textContent=rare;
+
+    balance+=500;
+
+    resultEl.textContent=
+      "✨ РЕДКИЙ НОМЕР! +500 виртуальных очков";
+
+   }else{
+
+    resultEl.textContent=
+      "✅ Номер успешно выбит!";
+   }
+
+   balanceEl.textContent=
+     balance.toLocaleString("ru-RU");
+
+   addToCollection();
+
+   busy=false;
+   spinBtn.disabled=false;
+  }
+
+ },70);
+
+};
+
+function addToCollection(){
+
+ const number=numbersEl.textContent;
+ const lettersValue=lettersEl.textContent;
+ const region=regionEl.textContent;
+
+ const item=document.createElement("div");
+
+ item.className="item";
+
+ const rareMark=Math.random()<0.08;
+
+ item.innerHTML=
+  "<span>"+
+  number+" "+lettersValue+
+  " <b>"+region+"</b>"+
+  "</span>"+
+  "<span class='"+(rareMark?"rare":"")+"'>"+
+  (rareMark?"⭐ Редкий":"Обычный")+
+  "</span>";
+
+ collectionEl.prepend(item);
+
+ if(collectionEl.children.length>8){
+  collectionEl.lastElementChild.remove();
+ }
+}
+
+</script>
+
+</body>
+</html>
